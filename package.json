@@ -19,6 +19,5 @@
     "mongoose-encryption": "^2.1.0",
     "node-pre-gyp": "^0.17.0"
   },
-  "devDependencies": {},
   "description": ""
 }
