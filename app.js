@@ -4,10 +4,10 @@ const app = express();
 const bodyParser = require("body-parser");
 
 const mongoose = require("mongoose");
-const md5 = require("md5")
+var encrypt = require('mongoose-encryption')
 
 
-console.log(md5("hello world"));
+
 
 mongoose.connect("mongodb://localhost:27017/secretsDB",{ useNewUrlParser: true ,useUnifiedTopology: true});
 
@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+var secret = "helloworld";
+userSchema.plugin(encrypt, { secret: secret ,encryptedFields: ['password']});
+
+
 const User = new mongoose.model("User", userSchema);
 // Route
 
@@ -45,7 +49,7 @@ app.post("/login", (req, res) => {
   User.find({username : req.body.username},(err,foundUser)=>{
     if(!err){
       console.log(foundUser[0]);
-      if(foundUser[0].password === md5(req.body.password)){
+      if(foundUser[0].password === req.body.password){
         res.render("secrets")
       }else{
         console.log("Password dont match");
@@ -65,7 +69,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const user = new User({
     username: req.body.username,
-    password: md5(req.body.password),
+    password:req.body.password,
   });
   user.save((err) => {
     if (!err) {
