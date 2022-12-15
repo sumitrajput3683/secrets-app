@@ -2,14 +2,18 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-
 const mongoose = require("mongoose");
-var encrypt = require('mongoose-encryption')
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 
 
 
-mongoose.connect("mongodb://localhost:27017/secretsDB",{ useNewUrlParser: true ,useUnifiedTopology: true});
+
+mongoose.connect("mongodb://localhost:27017/secretsDB", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 // Middlewares
 app.use(express.static("public"));
@@ -29,10 +33,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-var secret = "helloworld";
-userSchema.plugin(encrypt, { secret: secret ,encryptedFields: ['password']});
-
-
 const User = new mongoose.model("User", userSchema);
 // Route
 
@@ -46,20 +46,28 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 app.post("/login", (req, res) => {
-  User.find({username : req.body.username},(err,foundUser)=>{
-    if(!err){
+  User.find({ username: req.body.username }, (err, foundUser) => {
+    if (!err) {
       console.log(foundUser[0]);
-      if(foundUser[0].password === req.body.password){
-        res.render("secrets")
-      }else{
-        console.log("Password dont match");
-      }
-    }else{
+      bcrypt.compare(
+        req.body.password,
+        foundUser[0].password,
+        function (error, result) {
+          if (!error) {
+            if (result === true) {
+              res.render("secrets")
+            }
+          } else {
+            res.redirect("/");
+            console.log(err);
+          }
+        }
+      );
+    } else {
       console.log(err);
       console.log("no user found");
     }
-
-  })
+  });
 });
 
 // register
@@ -67,18 +75,31 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 app.post("/register", (req, res) => {
-  const user = new User({
-    username: req.body.username,
-    password:req.body.password,
-  });
-  user.save((err) => {
-    if (!err) {
-      res.render("secrets");
-    }else{
+  bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
+    if (err) {
       console.log(err);
+    } else {
+      const user = new User({
+        username: req.body.username,
+        password: hash,
+      });
+      user.save((error) => {
+        if (!error) {
+          res.render("secrets");
+        } else {
+          console.log(error);
+        }
+      });
     }
   });
 });
+
+// logout
+app.get("/logout", (req, res) => {
+  res.redirect("/")
+});
+
+
 
 // Server
 app.listen("3000", () => {
