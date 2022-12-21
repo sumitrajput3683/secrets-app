@@ -2,14 +2,11 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+
 const mongoose = require("mongoose");
+
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-
-
-
-
-
 mongoose.connect("mongodb://localhost:27017/secretsDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -57,9 +54,13 @@ app.post("/login", (req, res) => {
             if (result === true) {
               res.render("secrets")
             }
+            else{
+              res.redirect("/")
+              console.log("wrong password");
+            }
           } else {
             res.redirect("/");
-            console.log(err);
+            console.log(error);
           }
         }
       );
@@ -99,7 +100,10 @@ app.get("/logout", (req, res) => {
   res.redirect("/")
 });
 
-
+// submitsecrets
+app.get("/Submit",(req, res)=>{
+  res.redirect("/")
+})
 
 // Server
 app.listen("3000", () => {
