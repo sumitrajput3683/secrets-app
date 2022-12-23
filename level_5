@@ -1,0 +1,42 @@
+// require
+const express = require("express");
+const app = express();
+const bodyParser = require("body-parser");
+const mongoose =require("mongoose");
+
+const passport = require("passport");
+const passportLocalMongoose =require("passport-local-mongoose");
+const passportLocal =require("passport-local");
+const session = reqiure("express-session");
+
+
+const bcrypt = require("bcrypt");
+const saltRounds = 20;
+mongoose.connect("mongodb://localhost:27017/secretsDB", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+app.use(express.static("public"));
+app.use(bodyParser.urlencoded({extended : true}));
+app.use("viewengine","ejs")
+
+app.use(
+    session({
+        secret:"our big secret",
+        resave: false,
+        saveUninitilaized :false,
+    })
+)
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+
+
+
+
+
+
+
